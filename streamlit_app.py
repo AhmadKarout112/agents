@@ -3,8 +3,29 @@ import streamlit as st
 import pandas as pd
 import os
 
-# Set OpenAI API key securely from environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Set OpenAI API key from Streamlit secrets or environment variable
+if 'openai' in st.secrets:
+    openai.api_key = st.secrets['openai']['OPENAI_API_KEY']
+else:
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+
+if not openai.api_key:
+    st.error("OpenAI API key not found. Please set it in Streamlit Cloud secrets or as an environment variable.")
+    st.markdown("""
+    ### How to set up your API key:
+    1. Get your OpenAI API key from: https://platform.openai.com/api-keys
+    2. For Streamlit Cloud:
+        - Go to your app settings
+        - Click on 'Secrets'
+        - Add your API key as:
+        ```toml
+        [openai]
+        OPENAI_API_KEY = "your-api-key-here"
+        ```
+    3. For local development:
+        - Set the environment variable: `export OPENAI_API_KEY="your-api-key-here"`
+    """)
+    st.stop()
 
 # Load the dataset
 data_path = "agentic_ai_performance_dataset_20250622.csv"
@@ -76,11 +97,18 @@ if not similar_agents.empty and similar_agents['similarity'].max() > -10:
         f"Based on the following agent data: {similar_agents[['agent_type','task_category','model_architecture','accuracy_score','cost_per_task_cents','human_intervention_required']].to_dict(orient='records')}, "
         f"suggest research directions or projects to improve the performance of these agents."
     )
-    research_response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": research_prompt}]
-    )
-    research_suggestion = research_response['choices'][0]['message']['content']
+    try:
+        research_response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": research_prompt}]
+        )
+        research_suggestion = research_response['choices'][0]['message']['content']
+    except openai.error.AuthenticationError:
+        st.error("OpenAI API key is invalid. Please check your API key in Streamlit Cloud secrets.")
+        st.stop()
+    except Exception as e:
+        st.error(f"Error getting research suggestions: {str(e)}")
+        research_suggestion = "Unable to generate research suggestions at this time."
     st.markdown("<div class='recommendation'><h3>Research Suggestions</h3></div>", unsafe_allow_html=True)
     st.markdown(f"<div class='chat-box'><p>{research_suggestion}</p></div>", unsafe_allow_html=True)
 else:
