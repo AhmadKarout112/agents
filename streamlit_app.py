@@ -3,27 +3,21 @@ import streamlit as st
 import pandas as pd
 import os
 
-# Set OpenAI API key from Streamlit secrets or environment variable
-if 'openai' in st.secrets:
-    openai.api_key = st.secrets['openai']['OPENAI_API_KEY']
-else:
-    openai.api_key = os.getenv("OPENAI_API_KEY")
+# Set OpenAI API key from Streamlit secrets
+openai.api_key = st.secrets["OPENAI_API_KEY"]  # Access the key directly from secrets
 
 if not openai.api_key:
-    st.error("OpenAI API key not found. Please set it in Streamlit Cloud secrets or as an environment variable.")
+    st.error("OpenAI API key not found. Please set it in Streamlit Cloud secrets.")
     st.markdown("""
     ### How to set up your API key:
     1. Get your OpenAI API key from: https://platform.openai.com/api-keys
-    2. For Streamlit Cloud:
-        - Go to your app settings
-        - Click on 'Secrets'
-        - Add your API key as:
-        ```toml
-        [openai]
-        OPENAI_API_KEY = "your-api-key-here"
-        ```
-    3. For local development:
-        - Set the environment variable: `export OPENAI_API_KEY="your-api-key-here"`
+    2. In your Streamlit Cloud app:
+        - Go to "Settings" ⚙️
+        - Click on "Secrets"
+        - Add your API key with name exactly as: `OPENAI_API_KEY`
+        - Value should be your OpenAI API key
+    3. Click "Save"
+    4. Deploy your app again
     """)
     st.stop()
 
