@@ -3,11 +3,35 @@ import streamlit as st
 import pandas as pd
 import os
 
-# Set OpenAI API key from Streamlit secrets
-openai.api_key = st.secrets["OPENAI_API_KEY"]  # Access the key directly from secrets
+# Try to get the OpenAI API key from different sources
+try:
+    # First try getting from Streamlit secrets
+    openai.api_key = st.secrets["OPENAI_API_KEY"]
+except KeyError:
+    # If not in secrets, try environment variable
+    openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# Check if we have an API key
 if not openai.api_key:
-    st.error("OpenAI API key not found. Please set it in Streamlit Cloud secrets.")
+    st.error("⚠️ OpenAI API key not found!")
+    st.warning("Please set up your API key in the app secrets:")
+    
+    st.code("""
+1. Go to https://streamlit.io/
+2. Find this app: Agentic Task Gap Analysis
+3. Click on "Manage app" ⚙️
+4. Select "Secrets"
+5. Add this exactly:
+
+OPENAI_API_KEY = "your-api-key-here"
+
+6. Replace "your-api-key-here" with your actual OpenAI API key
+7. Click "Save"
+8. Click "Reboot app"
+    """)
+    
+    st.info("Need an OpenAI API key? Get one here: https://platform.openai.com/api-keys")
+    st.stop()
     st.markdown("""
     ### How to set up your API key:
     1. Get your OpenAI API key from: https://platform.openai.com/api-keys
