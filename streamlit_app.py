@@ -23,383 +23,347 @@ except FileNotFoundError:
     st.error(f"Dataset file not found: {data_path}")
     st.stop()
 
-# Streamlit app setup with modern design
+# Streamlit app setup
 st.set_page_config(
-    page_title="Agentic Task Gap Analysis",
+    page_title="AI Agent Hub",
     page_icon="🤖",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for ultra-modern design
-st.markdown(
-    """
+# Custom CSS for modern design
+st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
     
     /* Global Styles */
     body {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
         background: linear-gradient(135deg, #f6f9fc 0%, #ffffff 100%);
-        font-family: 'Inter', sans-serif;
         color: #1a1f36;
     }
 
-    /* Modern Title */
-    .main-title {
-        background: linear-gradient(135deg, #2b6cb0 0%, #1e4e8c 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 2.8em;
-        font-weight: 800;
-        text-align: center;
-        margin: 2rem 0;
-        padding: 1rem;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    /* App Container */
+    .stApp {
+        background: linear-gradient(145deg, #f3f6ff 0%, #ffffff 100%);
     }
 
-    /* Chat Container */
+    /* Header/Title Section */
+    .header-container {
+        text-align: center;
+        padding: 2rem 1rem;
+        background: linear-gradient(135deg, #2b6cb0 0%, #1e4e8c 100%);
+        border-radius: 24px;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+    }
+    .app-title {
+        font-size: 2.8em;
+        font-weight: 700;
+        margin: 0;
+        padding: 0;
+        background: white;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    .app-subtitle {
+        font-size: 1.2em;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+    }
+
+    /* Chat Interface */
     .chat-container {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
         border-radius: 24px;
         box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
         padding: 2rem;
-        margin: 1.5rem 0;
+        margin: 1.5rem auto;
+        max-width: 800px;
         border: 1px solid rgba(255, 255, 255, 0.18);
-        transition: all 0.3s ease;
-    }
-    .chat-container:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 40px rgba(31, 38, 135, 0.18);
+        animation: slideUp 0.5s ease-out;
     }
 
-    /* Chat Header */
-    .chat-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #f1f5f9;
-    }
-    .assistant-info {
-        margin-left: 1rem;
-    }
-    .assistant-name {
-        font-weight: 600;
-        color: #2b6cb0;
-    }
-    .assistant-status {
-        font-size: 0.8em;
-        color: #64748b;
-    }
-
-    /* Chat Messages */
-    .chat-message {
-        display: flex;
-        margin: 1rem 0;
+    /* Messages */
+    .message {
+        margin: 1.5rem 0;
         animation: fadeIn 0.5s ease-out;
-    }
-    .message-content {
-        max-width: 80%;
-        padding: 1rem 1.5rem;
-        border-radius: 20px;
-        line-height: 1.5;
+        position: relative;
     }
     .user-message {
-        justify-content: flex-end;
-    }
-    .user-message .message-content {
         background: linear-gradient(135deg, #2b6cb0 0%, #1e4e8c 100%);
         color: white;
         border-radius: 20px 20px 5px 20px;
+        padding: 1rem 1.5rem;
+        margin-left: 20%;
+        box-shadow: 0 4px 15px rgba(43, 108, 176, 0.2);
     }
-    .assistant-message {
-        justify-content: flex-start;
-    }
-    .assistant-message .message-content {
+    .agent-message {
         background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        color: #1a1f36;
         border-radius: 20px 20px 20px 5px;
+        padding: 1rem 1.5rem;
+        margin-right: 20%;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     }
 
-    /* Sidebar */
-    .sidebar {
-        background: linear-gradient(165deg, #2b6cb0 0%, #1e4e8c 100%);
-        color: white;
-        padding: 1.5rem;
-        border-radius: 20px;
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+    /* Quick Actions */
+    .quick-actions {
+        display: flex;
+        gap: 1rem;
+        margin: 1rem 0;
+        flex-wrap: wrap;
+        justify-content: center;
     }
-    .sidebar h3 {
-        font-size: 1.3em;
-        margin-bottom: 1rem;
-        font-weight: 600;
+    .action-button {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.8rem 1.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        min-width: 120px;
+    }
+    .action-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: #2b6cb0;
     }
 
     /* Input Area */
     .input-area {
         display: flex;
-        align-items: center;
         gap: 1rem;
         margin-top: 2rem;
+        background: white;
         padding: 1rem;
-        background: #f8fafc;
         border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     }
+    
+    /* Text Input */
     .stTextInput > div > div > input {
-        border-radius: 12px;
-        border: 2px solid #e2e8f0;
-        padding: 1rem;
-        transition: all 0.3s ease;
+        border-radius: 12px !important;
+        border: 2px solid #e2e8f0 !important;
+        padding: 1rem !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
     }
     .stTextInput > div > div > input:focus {
-        border-color: #2b6cb0;
-        box-shadow: 0 0 0 2px rgba(43, 108, 176, 0.2);
+        border-color: #2b6cb0 !important;
+        box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.2) !important;
     }
 
     /* Buttons */
     .stButton > button {
-        background: linear-gradient(135deg, #2b6cb0 0%, #1e4e8c 100%);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        padding: 0.8rem 1.5rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #2b6cb0 0%, #1e4e8c 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 0.8rem 1.5rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        width: auto !important;
     }
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(43, 108, 176, 0.2);
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 16px rgba(43, 108, 176, 0.2) !important;
     }
 
     /* Animations */
+    @keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
-    @keyframes typing {
-        0% { opacity: 0.3; }
-        50% { opacity: 1; }
-        100% { opacity: 0.3; }
-    }
-    .typing-indicator {
-        display: flex;
-        gap: 0.5rem;
-        padding: 1rem;
-        background: #f1f5f9;
-        border-radius: 16px;
-        width: fit-content;
-    }
-    .typing-dot {
-        width: 8px;
-        height: 8px;
-        background: #2b6cb0;
-        border-radius: 50%;
-        animation: typing 1.5s infinite;
-    }
-    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
-# Main title with gradient effect and subtitle
+    /* Recommendation Cards */
+    .recommendation-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    .recommendation-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Feature Tags */
+    .feature-tag {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9em;
+        margin: 0.2rem;
+        background: #f1f5f9;
+        color: #1e4e8c;
+    }
+    
+    /* Settings Panel */
+    .settings-panel {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Header
 st.markdown("""
-    <div class='main-title'>
-        <span style='font-size: 0.4em; display: block; margin-bottom: 0.5rem;'>AI-Powered</span>
-        Agentic Task Gap Analysis
-        <span style='font-size: 0.6em; display: block; margin-top: 0.5rem; opacity: 0.8;'>Intelligent Agent Recommendations</span>
+    <div class="header-container">
+        <h1 class="app-title">AI Agent Hub 🤖</h1>
+        <p class="app-subtitle">Your Intelligent Agent Advisor</p>
     </div>
 """, unsafe_allow_html=True)
 
-# Initialize session states
+# Initialize session state
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
-if 'is_typing' not in st.session_state:
-    st.session_state.is_typing = False
+if 'preferences' not in st.session_state:
+    st.session_state.preferences = {
+        'task_complexity': 5,
+        'autonomy_level': 5,
+        'task_category': 'general'
+    }
 
-# Sidebar
-with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/artificial-intelligence.png", width=50)
-    st.markdown("<div class='sidebar'>", unsafe_allow_html=True)
-    st.markdown("### Task Preferences")
-    
-    # Task complexity
-    try:
-        task_complexity = st.select_slider(
-            "Task Complexity",
-            options=sorted(data['task_complexity'].unique()),
-            value=data['task_complexity'].median()
-        )
-    except Exception:
-        task_complexity = st.slider("Task Complexity", 1, 10, 5)
+# Main chat container
+st.markdown('<div class="chat-container">', unsafe_allow_html=True)
 
-    # Autonomy level
-    try:
-        autonomy_level = st.select_slider(
-            "Desired Autonomy Level",
-            options=sorted(data['autonomy_level'].unique()),
-            value=data['autonomy_level'].median()
-        )
-    except Exception:
-        autonomy_level = st.slider("Autonomy Level", 1, 10, 5)
-
-    # Task category
-    try:
-        task_category = st.selectbox(
-            "Task Category",
-            options=sorted(data['task_category'].unique()),
-            index=0
-        )
-    except Exception:
-        task_category = st.text_input("Task Category", "general")
-
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    # Chat history
-    st.markdown("<div class='sidebar' style='margin-top: 1rem;'>", unsafe_allow_html=True)
-    st.markdown("### Chat History")
-    for message in st.session_state.chat_history[-5:]:  # Show last 5 messages
-        st.markdown(f"<div style='font-size: 0.9em; margin: 0.5rem 0;'>{message}</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# Chat interface
-st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
-
-# Chat header
+# Quick action buttons
 st.markdown("""
-    <div class='chat-header'>
-        <img src='https://img.icons8.com/color/48/bot.png' style='width: 40px; height: 40px;'>
-        <div class='assistant-info'>
-            <div class='assistant-name'>AI Assistant</div>
-            <div class='assistant-status'>Online • Ready to help</div>
-        </div>
+    <div class="quick-actions">
+        <div class="action-button">🎯 Find Agent</div>
+        <div class="action-button">🔄 Compare</div>
+        <div class="action-button">📊 Analytics</div>
+        <div class="action-button">❓ Help</div>
     </div>
 """, unsafe_allow_html=True)
 
 # Display chat messages
 for message in st.session_state.chat_history:
     if message.startswith("User:"):
-        st.markdown(f"""
-            <div class='chat-message user-message'>
-                <div class='message-content'>{message[6:]}</div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="message"><div class="user-message">{message[6:]}</div></div>',
+            unsafe_allow_html=True
+        )
     else:
-        st.markdown(f"""
-            <div class='chat-message assistant-message'>
-                <div class='message-content'>{message[7:]}</div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="message"><div class="agent-message">{message[7:]}</div></div>',
+            unsafe_allow_html=True
+        )
 
-# Chat input
-placeholders = [
-    "Ask about agent recommendations...",
-    "Describe your task requirements...",
-    "Need help finding the right agent?",
-    "What kind of agent are you looking for?",
-]
-
-col1, col2 = st.columns([6,1])
+# Chat input area
+col1, col2 = st.columns([5,1])
 with col1:
     user_input = st.text_input(
-        "Message the AI Assistant:",
-        placeholder=random.choice(placeholders),
+        "",
+        placeholder="Ask about AI agents, task recommendations, or analysis...",
         key="chat_input"
     )
 with col2:
-    send_button = st.button("Send 📤")
-
-if user_input and (send_button or True):  # Allow Enter key to also send
-    # Add user message to chat
-    st.session_state.chat_history.append(f"User: {user_input}")
-    
-    # Process user input
-    try:
-        # Show typing indicator
-        st.session_state.is_typing = True
-        st.rerun()
-
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an AI assistant helping users find the right AI agents for their tasks."},
-                {"role": "user", "content": user_input}
-            ],
-            max_tokens=150
-        )
-        agent_response = response['choices'][0]['message']['content']
-        
-        # Add assistant response to chat
-        st.session_state.chat_history.append(f"Agent: {agent_response}")
-        
-        # Reset typing indicator
-        st.session_state.is_typing = False
-        
-    except Exception as e:
-        st.error(f"Error: {str(e)}")
-        st.session_state.chat_history.append(f"Agent: I apologize, but I encountered an error. Please try again.")
-
-# Show typing indicator if assistant is typing
-if st.session_state.is_typing:
-    st.markdown("""
-        <div class='typing-indicator'>
-            <div class='typing-dot'></div>
-            <div class='typing-dot'></div>
-            <div class='typing-dot'></div>
-        </div>
-    """, unsafe_allow_html=True)
+    send_button = st.button("Send 🚀")
 
 st.markdown("</div>", unsafe_allow_html=True)  # Close chat container
 
-# Button to get recommendations based on current preferences
-if st.button("Get Recommendations for Current Preferences", key="get_recommendations"):
-    # Similar agents calculation
-    query = {
-        "task_complexity": task_complexity,
-        "autonomy_level": autonomy_level,
-        "task_category": task_category
-    }
+# Settings/Preferences Panel (as expandable section)
+with st.expander("🎮 Agent Preferences", expanded=False):
+    st.markdown('<div class="settings-panel">', unsafe_allow_html=True)
+    cols = st.columns(3)
     
-    # Calculate similarity scores
-    def similarity(row):
-        score = 0
-        try:
-            score -= abs(int(row['task_complexity']) - int(query['task_complexity'])) * 2
-        except Exception:
-            pass
-        try:
-            score -= abs(int(row['autonomy_level']) - int(query['autonomy_level'])) * 2
-        except Exception:
-            pass
-        score += 5 if str(row.get('task_category')) == str(query.get('task_category')) else 0
-        return score
-
-    data['similarity'] = data.apply(similarity, axis=1)
-    similar_agents = data.sort_values('similarity', ascending=False).head(5)
-
-    # Display recommendations
-    if not similar_agents.empty and similar_agents['similarity'].max() > -10:
-        recommendations = []
-        for _, agent in similar_agents.iterrows():
-            recommendations.append({
-                'agent_type': agent.get('agent_type', 'N/A'),
-                'task_category': agent.get('task_category', 'N/A'),
-                'model_architecture': agent.get('model_architecture', 'N/A'),
-                'accuracy_score': agent.get('accuracy_score', 0),
-                'cost_per_task_cents': agent.get('cost_per_task_cents', 0),
-                'human_intervention_required': agent.get('human_intervention_required', False)
-            })
+    with cols[0]:
+        st.session_state.preferences['task_complexity'] = st.slider(
+            "Task Complexity",
+            1, 10, st.session_state.preferences['task_complexity'],
+            help="How complex is your task?"
+        )
+    
+    with cols[1]:
+        st.session_state.preferences['autonomy_level'] = st.slider(
+            "Autonomy Level",
+            1, 10, st.session_state.preferences['autonomy_level'],
+            help="How autonomous should the agent be?"
+        )
+    
+    with cols[2]:
+        st.session_state.preferences['task_category'] = st.selectbox(
+            "Task Category",
+            options=sorted(data['task_category'].unique()),
+            index=0,
+            help="What type of task are you working on?"
+        )
+    
+    if st.button("🔍 Get Recommendations", use_container_width=True):
+        query = st.session_state.preferences
         
-        # Format recommendations as a chat message
-        recommendation_text = "Here are the top agent recommendations based on your preferences:\n\n"
-        for i, rec in enumerate(recommendations, 1):
-            recommendation_text += f"{i}. {rec['agent_type']} for {rec['task_category']}\n"
-            recommendation_text += f"   • Model: {rec['model_architecture']}\n"
-            recommendation_text += f"   • Accuracy: {rec['accuracy_score']:.2f}\n"
-            recommendation_text += f"   • Cost: ${rec['cost_per_task_cents']:.4f} per task\n"
-            recommendation_text += f"   • Human Intervention: {'Yes' if rec['human_intervention_required'] else 'No'}\n\n"
+        # Calculate similarity
+        def similarity(row):
+            score = 0
+            try:
+                score -= abs(int(row['task_complexity']) - int(query['task_complexity'])) * 2
+                score -= abs(int(row['autonomy_level']) - int(query['autonomy_level'])) * 2
+                score += 5 if str(row.get('task_category')) == str(query.get('task_category')) else 0
+            except Exception:
+                pass
+            return score
+
+        data['similarity'] = data.apply(similarity, axis=1)
+        similar_agents = data.sort_values('similarity', ascending=False).head(3)
+
+        # Format recommendations
+        if not similar_agents.empty and similar_agents['similarity'].max() > -10:
+            recommendation_text = "🎯 Here are your personalized agent recommendations:\n\n"
+            for i, agent in similar_agents.iterrows():
+                recommendation_text += f"#{i+1} {agent.get('agent_type', 'Unknown Agent')}\n"
+                recommendation_text += f"• Task Category: {agent.get('task_category', 'N/A')}\n"
+                recommendation_text += f"• Accuracy: {agent.get('accuracy_score', 0):.2f}%\n"
+                recommendation_text += f"• Cost: ${agent.get('cost_per_task_cents', 0)/100:.2f} per task\n\n"
+            
+            st.session_state.chat_history.append(f"Agent: {recommendation_text}")
+            st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# Process chat input
+if user_input and (send_button or True):
+    # Add user message
+    st.session_state.chat_history.append(f"User: {user_input}")
+    
+    try:
+        # Get agent response
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an AI agent advisor helping users find and understand different AI agents."},
+                {"role": "user", "content": user_input}
+            ]
+        )
+        agent_response = response['choices'][0]['message']['content']
         
-        st.session_state.chat_history.append(f"Agent: {recommendation_text}")
+        # Add agent response
+        st.session_state.chat_history.append(f"Agent: {agent_response}")
+        
+        # Update UI
         st.rerun()
+        
+    except Exception as e:
+        st.error(f"Error: {str(e)}")
+        st.session_state.chat_history.append(f"Agent: I encountered an error. Please try again.")
