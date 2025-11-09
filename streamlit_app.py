@@ -55,34 +55,95 @@ except FileNotFoundError:
 # Streamlit app setup with modern design
 st.set_page_config(page_title="Agentic Task Gap Analysis", layout="wide")
 
-# Custom CSS for modern design
+# Custom CSS for enhanced modern design
 st.markdown(
     """
     <style>
-    body {background: #f7faff; font-family: 'Arial', sans-serif;}
-    .main-title {color: #2b6cb0; font-size: 2.5em; font-weight: bold; text-align: center; margin-bottom: 20px;}
-    .chat-container {background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); padding: 20px; margin-bottom: 20px;}
-    .chat-bubble {background: #e3f2fd; border-radius: 16px; padding: 15px; margin-bottom: 10px; font-size: 1em;}
-    .user-bubble {background: #f0f4f8; border-radius: 16px; padding: 15px; margin-bottom: 10px; font-size: 1em; text-align: right;}
-    .sidebar {background: #2b6cb0; color: white; padding: 20px; border-radius: 10px;}
-    .button {background-color: #2b6cb0; color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer;}
-    .button:hover {background-color: #1a4e8a;}
+    body {
+        background: linear-gradient(to bottom, #f7faff, #e3f2fd);
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+    .main-title {
+        color: #2b6cb0;
+        font-size: 3em;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+        animation: fadeIn 2s;
+    }
+    .chat-container {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: transform 0.3s;
+    }
+    .chat-container:hover {
+        transform: scale(1.02);
+    }
+    .chat-bubble {
+        background: #e3f2fd;
+        border-radius: 16px;
+        padding: 15px;
+        margin-bottom: 10px;
+        font-size: 1em;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .user-bubble {
+        background: #f0f4f8;
+        border-radius: 16px;
+        padding: 15px;
+        margin-bottom: 10px;
+        font-size: 1em;
+        text-align: right;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .sidebar {
+        background: #2b6cb0;
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    .button {
+        background-color: #2b6cb0;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.3s;
+    }
+    .button:hover {
+        background-color: #1a4e8a;
+    }
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# Main title
+# Main title with animation
 st.markdown("<div class='main-title'>Agentic Task Gap Analysis</div>", unsafe_allow_html=True)
 
-# Sidebar for navigation / preferences / history
+# Sidebar for navigation/history with improved layout
 with st.sidebar:
     st.markdown("<div class='sidebar'><h3>Your Preferences</h3></div>", unsafe_allow_html=True)
     # Preference selectors driven from the dataset
     try:
         task_complexity = st.selectbox("Task Complexity", options=sorted(data['task_complexity'].unique()))
     except Exception:
-        # Fallback if column missing or not sortable
         task_complexity = st.text_input("Task Complexity", value="1")
 
     try:
@@ -102,7 +163,7 @@ with st.sidebar:
     for chat in st.session_state.chat_history:
         st.write(chat)
 
-# Chat interface
+# Chat interface with hover effects
 st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
 user_input = st.text_input("Ask the agent anything:", placeholder="E.g., What agent should I use for text processing?")
 if user_input:
