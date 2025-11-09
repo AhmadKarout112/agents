@@ -5,10 +5,8 @@ import os
 
 # Try to get the OpenAI API key from different sources
 try:
-    # First try getting from Streamlit secrets
     openai.api_key = st.secrets["OPENAI_API_KEY"]
 except KeyError:
-    # If not in secrets, try environment variable
     openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Check if we have an API key
@@ -57,17 +55,18 @@ except FileNotFoundError:
 # Streamlit app setup with modern design
 st.set_page_config(page_title="Agentic Task Gap Analysis", layout="wide")
 
-# Modern agentic design with custom CSS
+# Custom CSS for modern design
 st.markdown(
     """
     <style>
-    body {background: #f7faff;}
-    .main-title {color: #2b6cb0; font-size: 2.8em; font-weight: 700; text-align: center; margin-bottom: 30px;}
-    .sidebar {background: #2b6cb0; color: #fff; border-radius: 16px; padding: 24px; margin-bottom: 24px;}
-    .chat-bubble {background: #fff; border-radius: 16px; box-shadow: 0 2px 12px #2b6cb033; padding: 24px; margin-bottom: 18px;}
-    .recommendation {background: #e3f2fd; border-radius: 16px; padding: 24px; margin-top: 24px;}
-    .agent-card {background: #f0f4f8; border-radius: 12px; padding: 18px; margin-bottom: 12px; border-left: 6px solid #2b6cb0;}
-    .highlight {color: #2b6cb0; font-weight: 600;}
+    body {background: #f7faff; font-family: 'Arial', sans-serif;}
+    .main-title {color: #2b6cb0; font-size: 2.5em; font-weight: bold; text-align: center; margin-bottom: 20px;}
+    .chat-container {background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); padding: 20px; margin-bottom: 20px;}
+    .chat-bubble {background: #e3f2fd; border-radius: 16px; padding: 15px; margin-bottom: 10px; font-size: 1em;}
+    .user-bubble {background: #f0f4f8; border-radius: 16px; padding: 15px; margin-bottom: 10px; font-size: 1em; text-align: right;}
+    .sidebar {background: #2b6cb0; color: white; padding: 20px; border-radius: 10px;}
+    .button {background-color: #2b6cb0; color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer;}
+    .button:hover {background-color: #1a4e8a;}
     </style>
     """,
     unsafe_allow_html=True
@@ -76,14 +75,54 @@ st.markdown(
 # Main title
 st.markdown("<div class='main-title'>Agentic Task Gap Analysis</div>", unsafe_allow_html=True)
 
-# Sidebar for user inputs
+# Sidebar for navigation / preferences / history
 with st.sidebar:
     st.markdown("<div class='sidebar'><h3>Your Preferences</h3></div>", unsafe_allow_html=True)
-    task_complexity = st.selectbox("Task Complexity", sorted(data['task_complexity'].unique()))
-    autonomy_level = st.selectbox("Desired Autonomy Level", sorted(data['autonomy_level'].unique()))
-    task_category = st.selectbox("Task Category", sorted(data['task_category'].unique()))
+    # Preference selectors driven from the dataset
+    try:
+        task_complexity = st.selectbox("Task Complexity", options=sorted(data['task_complexity'].unique()))
+    except Exception:
+        # Fallback if column missing or not sortable
+        task_complexity = st.text_input("Task Complexity", value="1")
 
-# Find most similar agents (not exact match)
+    try:
+        autonomy_level = st.selectbox("Desired Autonomy Level", options=sorted(data['autonomy_level'].unique()))
+    except Exception:
+        autonomy_level = st.text_input("Desired Autonomy Level", value="1")
+
+    try:
+        task_category = st.selectbox("Task Category", options=sorted(data['task_category'].unique()))
+    except Exception:
+        task_category = st.text_input("Task Category", value="general")
+
+    st.markdown("<hr />", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar'><h3>Chat History</h3></div>", unsafe_allow_html=True)
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+    for chat in st.session_state.chat_history:
+        st.write(chat)
+
+# Chat interface
+st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
+user_input = st.text_input("Ask the agent anything:", placeholder="E.g., What agent should I use for text processing?")
+if user_input:
+    st.session_state.chat_history.append(f"User: {user_input}")
+    # Process user input
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": user_input}]
+        )
+        agent_response = response['choices'][0]['message']['content']
+        st.session_state.chat_history.append(f"Agent: {agent_response}")
+    except Exception as e:
+        agent_response = f"Error: {str(e)}"
+        st.session_state.chat_history.append(f"Agent: {agent_response}")
+    st.write(f"<div class='user-bubble'>{user_input}</div>", unsafe_allow_html=True)
+    st.write(f"<div class='chat-bubble'>{agent_response}</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
+
+# Recommendation flow: compute similar agents for current preferences
 query = {
     "task_complexity": task_complexity,
     "autonomy_level": autonomy_level,
@@ -93,32 +132,52 @@ query = {
 # Compute similarity (numeric for complexity/autonomy, exact for category)
 def similarity(row):
     score = 0
-    score -= abs(int(row['task_complexity']) - int(query['task_complexity'])) * 2
-    score -= abs(int(row['autonomy_level']) - int(query['autonomy_level'])) * 2
-    score += 5 if row['task_category'] == query['task_category'] else 0
+    try:
+        score -= abs(int(row['task_complexity']) - int(query['task_complexity'])) * 2
+    except Exception:
+        pass
+    try:
+        score -= abs(int(row['autonomy_level']) - int(query['autonomy_level'])) * 2
+    except Exception:
+        pass
+    score += 5 if str(row.get('task_category')) == str(query.get('task_category')) else 0
     return score
 
 data['similarity'] = data.apply(similarity, axis=1)
 similar_agents = data.sort_values('similarity', ascending=False).head(5)
 
-if not similar_agents.empty and similar_agents['similarity'].max() > -10:
+def render_recommendations(similar_agents):
+    if similar_agents.empty or similar_agents['similarity'].max() <= -10:
+        st.markdown("<div class='recommendation'><h3>No Similar Agents Found</h3></div>", unsafe_allow_html=True)
+        st.markdown("<div class='chat-bubble'>No agents closely match your preferences, but you can research new agent architectures or hybrid approaches for this gap.</div>", unsafe_allow_html=True)
+        return None
+
     st.markdown("<div class='recommendation'><h3>Most Relevant Agents & Research Directions</h3></div>", unsafe_allow_html=True)
+    summary_records = []
     for _, agent in similar_agents.iterrows():
         st.markdown(
             f"<div class='agent-card'>"
-            f"<span class='highlight'>{agent['agent_type']}</span> for <span class='highlight'>{agent['task_category']}</span> | "
-            f"Model: <b>{agent['model_architecture']}</b> | Accuracy: <b>{agent['accuracy_score']:.2f}</b> | Cost: <b>${agent['cost_per_task_cents']:.4f}</b> | Human Intervention: <b>{'Yes' if agent['human_intervention_required'] else 'No'}</b>"
+            f"<span class='highlight'>{agent.get('agent_type','N/A')}</span> for <span class='highlight'>{agent.get('task_category','N/A')}</span> | "
+            f"Model: <b>{agent.get('model_architecture','N/A')}</b> | Accuracy: <b>{agent.get('accuracy_score',0):.2f}</b> | Cost: <b>${agent.get('cost_per_task_cents',0):.4f}</b> | Human Intervention: <b>{'Yes' if agent.get('human_intervention_required') else 'No'}</b>"
             f"</div>", unsafe_allow_html=True)
+        summary_records.append({
+            'agent_type': agent.get('agent_type'),
+            'task_category': agent.get('task_category'),
+            'model_architecture': agent.get('model_architecture'),
+            'accuracy_score': agent.get('accuracy_score'),
+            'cost_per_task_cents': agent.get('cost_per_task_cents'),
+            'human_intervention_required': agent.get('human_intervention_required')
+        })
 
-    # Research suggestions
+    # Research suggestions via OpenAI
     research_prompt = (
-        f"Based on the following agent data: {similar_agents[['agent_type','task_category','model_architecture','accuracy_score','cost_per_task_cents','human_intervention_required']].to_dict(orient='records')}, "
-        f"suggest research directions or projects to improve the performance of these agents."
+        f"Based on the following agent data: {summary_records}, suggest research directions or projects to improve the performance of these agents."
     )
     try:
         research_response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": research_prompt}]
+            messages=[{"role": "user", "content": research_prompt}],
+            max_tokens=400
         )
         research_suggestion = research_response['choices'][0]['message']['content']
     except openai.error.AuthenticationError:
@@ -127,8 +186,13 @@ if not similar_agents.empty and similar_agents['similarity'].max() > -10:
     except Exception as e:
         st.error(f"Error getting research suggestions: {str(e)}")
         research_suggestion = "Unable to generate research suggestions at this time."
+
     st.markdown("<div class='recommendation'><h3>Research Suggestions</h3></div>", unsafe_allow_html=True)
     st.markdown(f"<div class='chat-box'><p>{research_suggestion}</p></div>", unsafe_allow_html=True)
-else:
-    st.markdown("<div class='recommendation'><h3>No Similar Agents Found</h3></div>", unsafe_allow_html=True)
-    st.markdown("<div class='chat-bubble'>No agents closely match your preferences, but you can research new agent architectures or hybrid approaches for this gap.</div>", unsafe_allow_html=True)
+    return research_suggestion
+
+# Allow the user to explicitly request recommendations (so chat and preferences are decoupled)
+if st.button("Get recommendations for current preferences"):
+    suggestion_text = render_recommendations(similar_agents)
+    if suggestion_text:
+        st.session_state.chat_history.append(f"Agent (recommendations): {suggestion_text}")
