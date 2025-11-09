@@ -1,19 +1,29 @@
-# 🎈 Blank app template
+# Agentic Task Gap Analysis
 
-A simple Streamlit app template for you to modify!
+An AI-powered tool that analyzes agent capabilities and provides research direction recommendations based on task complexity and autonomy requirements.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+## Setup
 
-### How to run it on your own machine
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-1. Install the requirements
+2. Set up environment variables:
+Create a `.env` file with your OpenAI API key:
+```bash
+OPENAI_API_KEY=your-api-key-here
+```
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+3. Run the application:
+```bash
+streamlit run streamlit_app.py
+```
 
-2. Run the app
+## Features
 
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+- Task complexity analysis
+- Autonomy level assessment
+- Similar agent recommendations
+- Research direction suggestions
+- Interactive visualization
