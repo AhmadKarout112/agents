@@ -7,8 +7,13 @@ import os
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Load the dataset
-data_path = "/workspaces/agents/agentic_ai_performance_dataset_20250622.csv"
-data = pd.read_csv(data_path)
+data_path = "agentic_ai_performance_dataset_20250622.csv"
+try:
+    data = pd.read_csv(data_path)
+except FileNotFoundError:
+    st.error(f"Dataset file not found: {data_path}")
+    st.info("Please make sure the dataset file is in the same directory as the application.")
+    st.stop()
 
 # Streamlit app setup with modern design
 st.set_page_config(page_title="Agentic Task Gap Analysis", layout="wide")
